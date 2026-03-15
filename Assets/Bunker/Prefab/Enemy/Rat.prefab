@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2337265850219547398}
   - component: {fileID: -2927707149295698376}
   - component: {fileID: -6673523643597225498}
+  - component: {fileID: 632140149269334925}
   m_Layer: 0
   m_Name: Rat
   m_TagString: Untagged
@@ -177,3 +178,16 @@ MonoBehaviour:
   snapToNavMeshDistance: 10
   faceTargetOnSpawn: 1
   rotationOffset: 4.48
+--- !u!114 &632140149269334925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2271407755785698394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a56db41f39a4e82ac5f44ee34cf53d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 10

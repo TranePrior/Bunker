@@ -39,6 +39,11 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
+        if (targetCar != null && targetCar.GetComponent<CarAutoDefenseSetup>() == null)
+        {
+            targetCar.gameObject.AddComponent<CarAutoDefenseSetup>();
+        }
+
         StartCoroutine(SpawnLoop());
     }
 
@@ -74,6 +79,11 @@ public class EnemySpawner : MonoBehaviour
 
         EnemyNavMesh enemy = Instantiate(enemyPrefab, spawnPosition, point.rotation);
         enemy.SetSpawnRotation(point.rotation);
+        if (enemy.GetComponent<EnemyHealth>() == null)
+        {
+            enemy.gameObject.AddComponent<EnemyHealth>();
+        }
+
         enemy.Initialize(targetCar);
 
         aliveEnemies.Add(enemy);
