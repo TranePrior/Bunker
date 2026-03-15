@@ -72,7 +72,8 @@ public class EnemySpawner : MonoBehaviour
             spawnPosition = hit.position;
         }
 
-        EnemyNavMesh enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        EnemyNavMesh enemy = Instantiate(enemyPrefab, spawnPosition, point.rotation);
+        enemy.SetSpawnRotation(point.rotation);
         enemy.Initialize(targetCar);
 
         aliveEnemies.Add(enemy);

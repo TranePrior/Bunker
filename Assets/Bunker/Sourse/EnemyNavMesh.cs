@@ -11,8 +11,7 @@ public class EnemyNavMesh : MonoBehaviour
     [SerializeField] private float snapToNavMeshDistance = 4f;
 
     [Header("Rotation")]
-    [SerializeField] private bool rotateToTarget = true;
-    [SerializeField] private float turnSpeed = 720f;
+    [SerializeField] private bool faceTargetOnSpawn = true;
     [SerializeField] private float rotationOffset = 0f;
 
     private CarHealth targetCar;
@@ -21,12 +20,20 @@ public class EnemyNavMesh : MonoBehaviour
     private NavMeshAgent agent;
     private float attackTimer;
     private float repathTimer;
+    private bool initialFacingApplied;
 
     public void Initialize(CarHealth car)
     {
         targetCar = car;
         targetTransform = car != null ? car.transform : null;
         targetCollider = car != null ? car.GetComponent<Collider2D>() : null;
+        TryApplySpawnFacing();
+    }
+
+    public void SetSpawnRotation(Quaternion rotation)
+    {
+        transform.rotation = rotation;
+        initialFacingApplied = true;
     }
 
     private void Awake()
@@ -55,6 +62,8 @@ public class EnemyNavMesh : MonoBehaviour
             }
         }
 
+        TryApplySpawnFacing();
+
         if (agent != null)
         {
             agent.stoppingDistance = attackRange;
@@ -81,11 +90,6 @@ public class EnemyNavMesh : MonoBehaviour
             }
 
             return;
-        }
-
-        if (rotateToTarget)
-        {
-            RotateTowards(GetTargetPoint());
         }
 
         repathTimer -= Time.deltaTime;
@@ -144,7 +148,17 @@ public class EnemyNavMesh : MonoBehaviour
         }
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + rotationOffset;
-        Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+    }
+
+    private void TryApplySpawnFacing()
+    {
+        if (initialFacingApplied || !faceTargetOnSpawn || targetTransform == null)
+        {
+            return;
+        }
+
+        RotateTowards(GetTargetPoint());
+        initialFacingApplied = true;
     }
 }

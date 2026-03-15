@@ -175,3 +175,5 @@ MonoBehaviour:
   attackCooldown: 1
   repathInterval: 0.2
   snapToNavMeshDistance: 10
+  faceTargetOnSpawn: 1
+  rotationOffset: 4.48
