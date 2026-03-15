@@ -15,11 +15,15 @@ public class CharacterSlot : MonoBehaviour
     [Header("Click")]
     [SerializeField] private float clickRadius = 0.75f;
 
+    private static CharacterSlot selectedSourceSlot;
+
     private bool isOccupied;
     private AutoShooter shooter;
     private SpriteRenderer slotSprite;
     private Collider2D slotCollider;
     private Button slotButton;
+    private GameObject spawnedCharacter;
+    private WeaponBehaviour spawnedWeapon;
 
     public bool IsOccupied => isOccupied;
 
@@ -69,6 +73,8 @@ public class CharacterSlot : MonoBehaviour
     {
         shooter = GetComponent<AutoShooter>();
         EnsureEditorSetup();
+        CacheExistingOccupants();
+        ApplyOccupiedVisualState();
     }
 
     private void OnMouseDown()
@@ -85,63 +91,124 @@ public class CharacterSlot : MonoBehaviour
     {
         if (isOccupied)
         {
-            return false;
+            selectedSourceSlot = this;
+            return true;
         }
 
-        if (characterPrefab == null)
+        if (selectedSourceSlot == null || selectedSourceSlot == this || !selectedSourceSlot.isOccupied)
         {
             return false;
         }
 
-        bool hasWeaponController = characterPrefab.GetComponent<CharacterWeaponController>() != null;
-        if (!hasWeaponController && weaponPrefab == null)
+        MoveFromSelectedSlot();
+        selectedSourceSlot = null;
+        return true;
+    }
+
+    private void MoveFromSelectedSlot()
+    {
+        GameObject characterToMove = selectedSourceSlot.spawnedCharacter;
+        if (characterToMove == null)
         {
-            return false;
+            characterToMove = selectedSourceSlot.transform.Find("Character")?.gameObject;
+            if (characterToMove == null)
+            {
+                return;
+            }
+
+            selectedSourceSlot.spawnedCharacter = characterToMove;
         }
 
-        GameObject characterObject = Instantiate(characterPrefab, transform);
-        characterObject.name = "Character";
-        characterObject.transform.localPosition = characterLocalPosition;
-        characterObject.transform.localRotation = Quaternion.Euler(characterLocalEuler);
+        WeaponBehaviour weaponToMove = selectedSourceSlot.spawnedWeapon;
+        if (weaponToMove == null)
+        {
+            Transform weaponTransform = selectedSourceSlot.transform.Find("EquippedWeapon");
+            if (weaponTransform != null)
+            {
+                weaponToMove = weaponTransform.GetComponent<WeaponBehaviour>();
+                selectedSourceSlot.spawnedWeapon = weaponToMove;
+            }
+        }
 
         if (shooter == null)
         {
             shooter = gameObject.AddComponent<AutoShooter>();
         }
 
-        CharacterWeaponController weaponController = characterObject.GetComponent<CharacterWeaponController>();
+        AutoShooter sourceShooter = selectedSourceSlot.shooter;
+        if (sourceShooter == null)
+        {
+            sourceShooter = selectedSourceSlot.GetComponent<AutoShooter>();
+            selectedSourceSlot.shooter = sourceShooter;
+        }
+
+        if (sourceShooter != null)
+        {
+            sourceShooter.EquipWeapon(null);
+        }
+
+        characterToMove.transform.SetParent(transform, false);
+        characterToMove.transform.localPosition = characterLocalPosition;
+        characterToMove.transform.localRotation = Quaternion.Euler(characterLocalEuler);
+
+        CharacterWeaponController weaponController = characterToMove.GetComponent<CharacterWeaponController>();
         if (weaponController != null)
         {
             weaponController.BindShooter(shooter);
         }
-        else
+        else if (weaponToMove != null)
         {
-            WeaponBehaviour mountedWeapon = Instantiate(weaponPrefab, transform);
-            mountedWeapon.name = "EquippedWeapon";
-            mountedWeapon.transform.localPosition = weaponLocalPosition;
-            mountedWeapon.transform.localRotation = Quaternion.Euler(weaponLocalEuler);
+            weaponToMove.transform.SetParent(transform, false);
+            weaponToMove.transform.localPosition = weaponLocalPosition;
+            weaponToMove.transform.localRotation = Quaternion.Euler(weaponLocalEuler);
 
             ICharacterShooter characterShooter = shooter;
-            characterShooter.EquipWeapon(mountedWeapon);
+            characterShooter.EquipWeapon(weaponToMove);
         }
 
+        spawnedCharacter = characterToMove;
+        spawnedWeapon = weaponToMove;
         isOccupied = true;
+        ApplyOccupiedVisualState();
 
+        selectedSourceSlot.spawnedCharacter = null;
+        selectedSourceSlot.spawnedWeapon = null;
+        selectedSourceSlot.isOccupied = false;
+        selectedSourceSlot.ApplyOccupiedVisualState();
+    }
+
+    private void CacheExistingOccupants()
+    {
+        Transform characterTransform = transform.Find("Character");
+        if (characterTransform != null)
+        {
+            spawnedCharacter = characterTransform.gameObject;
+        }
+
+        Transform weaponTransform = transform.Find("EquippedWeapon");
+        if (weaponTransform != null)
+        {
+            spawnedWeapon = weaponTransform.GetComponent<WeaponBehaviour>();
+        }
+
+        isOccupied = spawnedCharacter != null;
+    }
+
+    private void ApplyOccupiedVisualState()
+    {
         if (slotSprite != null)
         {
-            slotSprite.enabled = false;
+            slotSprite.enabled = !isOccupied;
         }
 
         if (slotButton != null)
         {
-            slotButton.interactable = false;
+            slotButton.interactable = true;
         }
 
         if (slotCollider != null)
         {
-            slotCollider.enabled = false;
+            slotCollider.enabled = true;
         }
-
-        return true;
     }
 }

@@ -474,8 +474,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27a619f75354436f9f985c3d19985666, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterPrefab: {fileID: 153709321125787190, guid: 457900d2a105b427ab49df8d87f21f88, type: 3}
-  weaponPrefab: {fileID: 214998340102851886, guid: 9de0570f1a4e54e26996ca3bbebbb92e, type: 3}
+  characterPrefab: {fileID: 0}
+  weaponPrefab: {fileID: 0}
   characterLocalPosition: {x: 0, y: 0, z: 0}
   characterLocalEuler: {x: 0, y: 0, z: 0}
   weaponLocalPosition: {x: 0, y: 0, z: 0}

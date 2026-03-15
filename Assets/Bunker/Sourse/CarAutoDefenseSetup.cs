@@ -33,6 +33,7 @@ public class CarAutoDefenseSetup : MonoBehaviour
     private readonly Dictionary<CharacterId, string> characterToSlot = new Dictionary<CharacterId, string>();
     private readonly Dictionary<string, GameObject> slotCharacterObjects = new Dictionary<string, GameObject>();
     private readonly Dictionary<string, WeaponBehaviour> slotWeaponObjects = new Dictionary<string, WeaponBehaviour>();
+    private string selectedSourceSlotName;
 
     private void Start()
     {
@@ -61,6 +62,39 @@ public class CarAutoDefenseSetup : MonoBehaviour
     public bool TryGetSlotForCharacter(CharacterId characterId, out string slotName)
     {
         return characterToSlot.TryGetValue(characterId, out slotName);
+    }
+
+    public void HandleSlotClicked(string slotName)
+    {
+        if (string.IsNullOrWhiteSpace(slotName) || !slotTransforms.ContainsKey(slotName))
+        {
+            return;
+        }
+
+        if (slotToCharacter.TryGetValue(slotName, out CharacterId? clickedCharacter) && clickedCharacter.HasValue)
+        {
+            selectedSourceSlotName = slotName;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedSourceSlotName))
+        {
+            return;
+        }
+
+        if (selectedSourceSlotName == slotName)
+        {
+            return;
+        }
+
+        if (!slotToCharacter.TryGetValue(selectedSourceSlotName, out CharacterId? sourceCharacter) || !sourceCharacter.HasValue)
+        {
+            selectedSourceSlotName = null;
+            return;
+        }
+
+        MoveCharacterObject(selectedSourceSlotName, slotName, sourceCharacter.Value);
+        selectedSourceSlotName = null;
     }
 
     private void InitializeDefaultState()
@@ -205,8 +239,110 @@ public class CarAutoDefenseSetup : MonoBehaviour
             Destroy(oldSlotLogic);
         }
 
+        CarDefenseSlotClickProxy clickProxy = slot.GetComponent<CarDefenseSlotClickProxy>();
+        if (clickProxy == null)
+        {
+            clickProxy = slot.gameObject.AddComponent<CarDefenseSlotClickProxy>();
+        }
+
+        clickProxy.Initialize(this, slotName);
+
         slotTransforms[slotName] = slot;
         slotToCharacter[slotName] = null;
+    }
+
+    private void MoveCharacterObject(string fromSlotName, string toSlotName, CharacterId characterId)
+    {
+        if (!slotTransforms.TryGetValue(fromSlotName, out Transform fromSlot))
+        {
+            return;
+        }
+
+        if (!slotTransforms.TryGetValue(toSlotName, out Transform toSlot))
+        {
+            return;
+        }
+
+        if (slotToCharacter.TryGetValue(toSlotName, out CharacterId? destinationCharacter) && destinationCharacter.HasValue)
+        {
+            return;
+        }
+
+        if (!slotCharacterObjects.TryGetValue(fromSlotName, out GameObject characterObject) || characterObject == null)
+        {
+            Transform fallbackCharacter = fromSlot.Find("Character");
+            if (fallbackCharacter == null)
+            {
+                return;
+            }
+
+            characterObject = fallbackCharacter.gameObject;
+        }
+
+        slotWeaponObjects.TryGetValue(fromSlotName, out WeaponBehaviour weaponObject);
+
+        AutoShooter sourceShooter = fromSlot.GetComponent<AutoShooter>();
+        if (sourceShooter != null)
+        {
+            sourceShooter.EquipWeapon(null);
+        }
+
+        AutoShooter destinationShooter = toSlot.GetComponent<AutoShooter>();
+        if (destinationShooter == null)
+        {
+            destinationShooter = toSlot.gameObject.AddComponent<AutoShooter>();
+        }
+
+        characterObject.transform.SetParent(toSlot, false);
+        characterObject.transform.localPosition = characterLocalPosition;
+        characterObject.transform.localRotation = Quaternion.Euler(characterLocalEuler);
+
+        CharacterWeaponController weaponController = characterObject.GetComponent<CharacterWeaponController>();
+        if (weaponController != null)
+        {
+            weaponController.BindShooter(destinationShooter);
+        }
+        else
+        {
+            if (weaponObject == null)
+            {
+                Transform fallbackWeapon = fromSlot.Find("EquippedWeapon");
+                if (fallbackWeapon != null)
+                {
+                    weaponObject = fallbackWeapon.GetComponent<WeaponBehaviour>();
+                }
+            }
+
+            if (weaponObject != null)
+            {
+                weaponObject.transform.SetParent(toSlot, false);
+                weaponObject.transform.localPosition = weaponLocalPosition;
+                weaponObject.transform.localRotation = Quaternion.Euler(weaponLocalEuler);
+
+                ICharacterShooter characterShooter = destinationShooter;
+                characterShooter.EquipWeapon(weaponObject);
+            }
+        }
+
+        slotCharacterObjects.Remove(fromSlotName);
+        slotCharacterObjects[toSlotName] = characterObject;
+
+        slotWeaponObjects.Remove(fromSlotName);
+        if (weaponObject != null)
+        {
+            slotWeaponObjects[toSlotName] = weaponObject;
+        }
+        else
+        {
+            slotWeaponObjects.Remove(toSlotName);
+        }
+
+        slotToCharacter[fromSlotName] = null;
+        slotToCharacter[toSlotName] = characterId;
+        characterToSlot[characterId] = toSlotName;
+
+        SetSlotVisual(fromSlot, false);
+        SetSlotVisual(toSlot, true);
     }
 
     private GameObject GetCharacterPrefab(CharacterId characterId)
