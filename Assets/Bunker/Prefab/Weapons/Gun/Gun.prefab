@@ -170,7 +170,7 @@ MonoBehaviour:
   range: 8
   targetSearchInterval: 0.15
   bulletPrefab: {fileID: 5828453416298021025, guid: c09861972bfe14b47b51a7d791fbbc55, type: 3}
-  projectileSpeed: 20
+  projectileSpeed: 12
   projectileLifetime: 2.5
   shotVfxPrefab: {fileID: 100002, guid: 3b1fe0d0dc796bf46b1460e5a70bd078, type: 3}
   shotVfxOffset: {x: -1.85, y: 2, z: 0}

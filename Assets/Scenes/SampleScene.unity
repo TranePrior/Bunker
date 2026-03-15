@@ -1405,6 +1405,14 @@ PrefabInstance:
       propertyPath: m_Radius
       value: 3.7
       objectReference: {fileID: 0}
+    - target: {fileID: 699557196434102296, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
+      propertyPath: shotVfxOffset.x
+      value: -1.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 699557196434102296, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
+      propertyPath: shotVfxOffset.y
+      value: 2.16
+      objectReference: {fileID: 0}
     - target: {fileID: 913756070903873834, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -1501,6 +1509,8 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 633221322527094275, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
     - {fileID: 6364514702288138356, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
+    - {fileID: 6361508754921388685, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
+    - {fileID: 1463102789492281683, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2276832527463463541, guid: feb1011ed12d8483cbf105c1e0d5e8da, type: 3}
